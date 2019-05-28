@@ -1,25 +1,72 @@
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
+plugins {
+    id 'java'
+    id 'idea'
+    id 'application'
+    id "io.spring.dependency-management" version "1.0.7.RELEASE"
+    id "net.ltgt.apt" version "0.21"
+    id "net.ltgt.apt-idea" version "0.21"
+}
+
+version "0.1"
+group "example.micronaut"
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+
+repositories {
+    mavenCentral()
+    jcenter {
+        content {
+            includeGroup "io.micronaut.configuration"
         }
     }
-    dependencies {
-        classpath "gradle.plugin.org.aim42:htmlSanityCheck:1.0.0-RC-1"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "io.micronaut:micronaut-bom:$micronautVersion"
     }
 }
-plugins {
-    id 'org.asciidoctor.convert' version '1.5.8.1'
-}
-apply plugin: 'org.aim42.htmlSanityCheck'
 
-asciidoctorj {
-    version = '1.5.6'
+dependencies {
+    annotationProcessor "io.micronaut:micronaut-inject-java"
+    compile "io.micronaut:micronaut-inject"
+    compile "io.micronaut:micronaut-runtime"
+    compile "io.micronaut:micronaut-http-client"
+    compile "io.micronaut:micronaut-http-server-netty"
+
+    compileOnly "io.micronaut:micronaut-inject-java"
+    runtime "ch.qos.logback:logback-classic:1.2.3"
+
+    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "io.micronaut.test:micronaut-test-junit5"
+    testImplementation "org.assertj:assertj-core:3.9.1"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine"
+
+    //tag::validator[]
+    compile "io.micronaut.configuration:micronaut-hibernate-validator"
+    //end::validator[]
+
+    //tag::jpa[]
+    compile "io.micronaut.configuration:micronaut-hibernate-jpa" // <1>
+    compile "io.micronaut.configuration:micronaut-jdbc-hikari" // <2>
+    runtime "com.h2database:h2" // <3>
+    //end::jpa[]
+
+    //tag::postgresql[]
+    runtime 'org.postgresql:postgresql:42.2.4'
+    //end::postgresql[]
+
+    compile 'io.micronaut.configuration:micronaut-flyway'
 }
 
-apply from:"https://raw.githubusercontent.com/micronaut-projects/micronaut-guides/master/gradle/guide-build.gradle"
+run.jvmArgs('-noverify', '-XX:TieredStopAtLevel=1')
 
-htmlSanityCheck {
-    sourceDir = new File("${project.buildDir}/docs")
+mainClassName = "example.micronaut.Application"
+compileJava.options.compilerArgs += '-parameters'
+compileTestJava.options.compilerArgs += '-parameters'
+
+test {
+    useJUnitPlatform()
 }
-publishGuide.finalizedBy(htmlSanityCheck)

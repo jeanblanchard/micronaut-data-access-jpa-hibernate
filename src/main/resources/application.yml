@@ -21,6 +21,14 @@ jpa:
         properties:
             hibernate:
                 hbm2ddl:
-                    auto: update
+                    auto: validate
                 show_sql: true
 #end::jpa[]
+
+
+
+flyway:
+    datasources:
+        default:
+            locations: classpath:databasemigrations
+
